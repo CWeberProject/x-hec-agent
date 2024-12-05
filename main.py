@@ -40,7 +40,7 @@ def send_message(request: Message):
     ]
     
     completion = client.chat(
-        model="mistral-large-latest",
+        model="mistral-small-latest",
         messages=messages
     )
     
