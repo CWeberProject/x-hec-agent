@@ -20,7 +20,7 @@ phospho.init(
 
 bearer = HTTPBearer()
 
-def get_api_hey(authorization: HTTPAuthorizationCredentials = Depends(bearer)) -> str:
+def get_api_key(authorization: HTTPAuthorizationCredentials = Depends(bearer)) -> str:
     # Parse credentials
     api_key_token = authorization.credentials
 
