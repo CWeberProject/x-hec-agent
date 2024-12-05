@@ -39,7 +39,7 @@ def send_message(request: Message):
     messages = [
         {
                 "type": "text",
-                "text": "Describe me this guy, rate his looks on a scale of 1 to 10."
+                "text": request.message
             },
             {
                 "type": "image_url",
