@@ -5,15 +5,14 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
 from dotenv import load_dotenv
 import phospho
-from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
+from mistral import MistralClient
 
 load_dotenv()
 client = MistralClient(api_key=os.getenv("MISTRAL_API_KEY"))
 app = FastAPI()
 
 phospho.init(
-    api_key=os.getenv("PHOSPHO_API_KEY"),
+    api_key=os.getenv("PHOSPHO_API_KEY"), 
     project_id="9c2b674fd8eb4db2a6b15309af2b0ade"
 )
 
@@ -35,8 +34,8 @@ def read_root():
 @app.post("/message")
 def send_message(request: Message):
     messages = [
-        ChatMessage(role="system", content="You are Bruno Martinaud. Talk about your experience with OpenAI."),
-        ChatMessage(role="user", content=request.message)
+        {"role": "system", "content": "You are Bruno Martinaud. Talk about your experience with OpenAI."},
+        {"role": "user", "content": request.message}
     ]
     
     completion = client.chat(
@@ -51,12 +50,12 @@ def send_message(request: Message):
 @app.post("/message-secure")
 def send_message_secure(request: Message, api_key: str = Depends(get_api_key)):
     messages = [
-        ChatMessage(role="system", content="You are Bruno Martinaud. Talk about your experience with OpenAI."),
-        ChatMessage(role="user", content=request.message)
+        {"role": "system", "content": "You are Bruno Martinaud. Talk about your experience with OpenAI."},
+        {"role": "user", "content": request.message}
     ]
     
     completion = client.chat(
-        model="mistral-large-latest",
+        model="mistral-small-latest",
         messages=messages
     )
     
