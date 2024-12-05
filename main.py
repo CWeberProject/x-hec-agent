@@ -10,7 +10,7 @@ from mistralai import Mistral
 api_key = os.environ["MISTRAL_API_KEY"]
 model = "mistral-small-latest"
 
-client = MistralClient(api_key)
+client = Mistral(api_key)
 app = FastAPI()
 
 phospho.init(
