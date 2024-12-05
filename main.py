@@ -5,10 +5,12 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
 from dotenv import load_dotenv
 import phospho
-from mistral import MistralClient
+from mistralai import Mistral
 
-load_dotenv()
-client = MistralClient(api_key=os.getenv("MISTRAL_API_KEY"))
+api_key = os.environ["MISTRAL_API_KEY"]
+model = "mistral-small-latest"
+
+client = MistralClient(api_key)
 app = FastAPI()
 
 phospho.init(
@@ -18,11 +20,12 @@ phospho.init(
 
 bearer = HTTPBearer()
 
-def get_api_key(authorization: HTTPAuthorizationCredentials = Depends(bearer)) -> str:
+def get_api_hey(authorization: HTTPAuthorizationCredentials = Depends(bearer)) -> str:
+    # Parse credentials
     api_key_token = authorization.credentials
+
     if api_key_token != os.getenv("MY_SECRET_KEY"):
         raise HTTPException(status_code=401, detail="Invalid token")
-    return api_key_token
 
 class Message(BaseModel):
     message: str
@@ -38,8 +41,8 @@ def send_message(request: Message):
         {"role": "user", "content": request.message}
     ]
     
-    completion = client.chat(
-        model="mistral-small-latest",
+    completion = client.chat.complete(
+        model=model,
         messages=messages
     )
     
@@ -54,8 +57,8 @@ def send_message_secure(request: Message, api_key: str = Depends(get_api_key)):
         {"role": "user", "content": request.message}
     ]
     
-    completion = client.chat(
-        model="mistral-small-latest",
+    completion = client.chat.complete(
+        model=model,
         messages=messages
     )
     
