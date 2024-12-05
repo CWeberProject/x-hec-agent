@@ -8,7 +8,7 @@ import phospho
 from mistralai import Mistral
 
 api_key = os.environ["MISTRAL_API_KEY"]
-model = "mistral-small-latest"
+model = "pixtral-12b-latest"
 
 client = Mistral(api_key)
 app = FastAPI()
@@ -37,8 +37,14 @@ def read_root():
 @app.post("/message")
 def send_message(request: Message):
     messages = [
-        {"role": "system", "content": "You are Bruno Martinaud. Talk about your experience with OpenAI."},
-        {"role": "user", "content": request.message}
+        {
+                "type": "text",
+                "text": "Describe me this guy, rate his looks on a scale of 1 to 10."
+            },
+            {
+                "type": "image_url",
+                "image_url": "https://media.licdn.com/dms/image/v2/D4E03AQGfDYTXsA2KXA/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1726654931091?e=1738800000&v=beta&t=HR1psPvn7_W3Z1QeZNCFgYLyUtSDdNYkDzJdFcfA3i0"
+            }
     ]
     
     completion = client.chat.complete(
