@@ -1,87 +1,64 @@
 import os
 from typing import Union
 from pydantic import BaseModel
-from openai import OpenAI
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
 from dotenv import load_dotenv
 import phospho
-from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
+from mistralai.client import MistralClient
+from mistralai.models.chat_completion import ChatMessage
 
 load_dotenv()
-
-client = OpenAI()
+client = MistralClient(api_key=os.getenv("MISTRAL_API_KEY"))
 app = FastAPI()
 
-
 phospho.init(
-    api_key=os.getenv("PHOSPHO_API_KEY"), project_id="9c2b674fd8eb4db2a6b15309af2b0ade"
+    api_key=os.getenv("PHOSPHO_API_KEY"),
+    project_id="9c2b674fd8eb4db2a6b15309af2b0ade"
 )
 
-# input_str = "Hello! This is what the user asked to the system"
-# output_str = "This is the response showed to the user by the app."
-# phospho.log(input=input_str, output=output_str)
-
-### (optional) Secure our API routes with an API key
 bearer = HTTPBearer()
 
-
-def get_api_hey(authorization: HTTPAuthorizationCredentials = Depends(bearer)) -> str:
-    # Parse credentials
+def get_api_key(authorization: HTTPAuthorizationCredentials = Depends(bearer)) -> str:
     api_key_token = authorization.credentials
-
     if api_key_token != os.getenv("MY_SECRET_KEY"):
         raise HTTPException(status_code=401, detail="Invalid token")
+    return api_key_token
 
-
-###
-
-
-# Message model
 class Message(BaseModel):
     message: str
-
 
 @app.get("/")
 def read_root():
     return {"Hello": "PLB!"}
 
-
 @app.post("/message")
 def send_message(request: Message):
-    # Call OpenAI
-    completion = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are Bruno Martinaud. Talk about your experience with OpenAI.",
-            },
-            {"role": "user", "content": request.message},
-        ],
+    messages = [
+        ChatMessage(role="system", content="You are Bruno Martinaud. Talk about your experience with OpenAI."),
+        ChatMessage(role="user", content=request.message)
+    ]
+    
+    completion = client.chat(
+        model="mistral-large-latest",
+        messages=messages
     )
-    # Extract the message from the completion
+    
     answer = completion.choices[0].message.content
-
-    # Log to analytics
     phospho.log(input=request.message, output=answer)
-
     return {"answer": answer}
 
-
 @app.post("/message-secure")
-def send_message_secure(request: Message, api_key: str = Depends(get_api_hey)):
-    # Call OpenAI
-    completion = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are Bruno Martinaud. Talk about your experience with OpenAI.",
-            },
-            {"role": "user", "content": request.message},
-        ],
+def send_message_secure(request: Message, api_key: str = Depends(get_api_key)):
+    messages = [
+        ChatMessage(role="system", content="You are Bruno Martinaud. Talk about your experience with OpenAI."),
+        ChatMessage(role="user", content=request.message)
+    ]
+    
+    completion = client.chat(
+        model="mistral-large-latest",
+        messages=messages
     )
-    # Extract the message from the completion
+    
     answer = completion.choices[0].message.content
-
     return {"answer": answer}
